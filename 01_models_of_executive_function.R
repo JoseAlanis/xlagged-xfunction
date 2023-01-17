@@ -62,22 +62,104 @@ data_mzp12 <- data_base %>%
 data_mzp12 <- data_mzp12 %>%
   mutate_if(is.numeric, z_score)
 
-# model
-
-###cross-lagged panel
 Model_H1 <- '
 # Messmodell
 
 ## Children
-### Working memory
-AGK1 =~ 1 * MD04_01.1 + 1 * MD04_04.1 + 1 * MD04_07.1
-AGK2 =~ 1 * MD04_01.2 + 1 * MD04_04.2 + 1 * MD04_07.2
+# AGK1 =~ 1 * MD04_01.1 + 1 * MD04_02.1 + 1 * MD04_04.1 + 1 * MD04_07.1
+# IHK1 =~ 1 * MD04_03.1 + 1 * MD04_05.1 + 1 * MD04_06.1 + 1 * MD04_08.1
+# EF_K_1 =~ 1 * AGK1 + 1 * IHK1
 
-# AG
-AGK2 ~~ AGK1
+AGK2 =~ 1 * MD04_01.2 + 1 * MD04_02.2 + 1 * MD04_04.2 + 1 * MD04_07.2
+IHK2 =~ 1 * MD04_03.2 + 1 * MD04_05.2 + 1 * MD04_06.2 + 1 * MD04_08.2
+EF_K_2 =~ 1 * AGK2 + 1 * IHK2
 
+## Parents
+# AGE1 =~ 1 * PB02_01.1 + 1 * PB02_02.1 + 1 * PB02_04.1 + 1 * PB02_07.1
+# IHE1 =~ 1 * PB02_03.1 + 1 * PB02_05.1 + 1 * PB02_06.1 + 1 * PB02_08.1
+# EF_E_1 =~ 1 * AGE1 + 1 * IHE1
 
+AGE2 =~ 1 * PB02_01.2 + 1 * PB02_02.2 + 1 * PB02_04.2 + 1 * PB02_07.2
+IHE2 =~ 1 * PB02_03.2 + 1 * PB02_05.2 + 1 * PB02_06.2 + 1 * PB02_08.2
+EF_E_2 =~ 1 * AGE2 + 1 * IHE2
+
+# Strukturmodell
+EF_K_2 ~ EF_E_2
+# EF_K_2 ~ EF_E_1
+# EF_K_2 ~ EF_K_1
+
+# Correlations
+# AGK1 ~~ AGE1
+# IHK1 ~~ IHE1
+
+AGK2 ~~ AGE2
+IHK2 ~~ IHE2
+
+# AGK1 ~~ AGE2
+# IHK1 ~~ IHE2
+
+# EF_K_1 ~~ EF_E_1
+# EF_K_2 ~~ EF_E_2
+
+# fix intercepts to zero
+# MD04_01.1 ~ 0
+# MD04_02.1 ~ 0
+# MD04_04.1 ~ 0
+# MD04_07.1 ~ 0
+# MD04_03.1 ~ 0
+# MD04_05.1 ~ 0
+# MD04_06.1 ~ 0
+# MD04_08.1 ~ 0
+# 
+# PB02_01.1 ~ 0
+# PB02_02.1 ~ 0
+# PB02_04.1 ~ 0
+# PB02_07.1 ~ 0
+# PB02_03.1 ~ 0
+# PB02_05.1 ~ 0
+# PB02_06.1 ~ 0
+# PB02_08.1 ~ 0
+
+MD04_01.2 ~ 0
+MD04_02.2 ~ 0
+MD04_04.2 ~ 0
+MD04_07.2 ~ 0
+MD04_03.2 ~ 0
+MD04_05.2 ~ 0
+MD04_06.2 ~ 0
+MD04_08.2 ~ 0
+
+PB02_01.2 ~ 0
+PB02_02.2 ~ 0
+PB02_04.2 ~ 0
+PB02_07.2 ~ 0
+PB02_03.2 ~ 0
+PB02_05.2 ~ 0
+PB02_06.2 ~ 0
+PB02_08.2 ~ 0
+
+MD04_03.2 ~~ MD04_05.2
 '
+
+fit_Model_H1 <- sem(model = Model_H1, data = data_mzp12,
+                    estimator = "MLR" , missing = "fiml", std.lv = FALSE)
+summary(fit_Model_H1, fit.measures = TRUE,
+        standardized = TRUE, rsquare=T, ci = TRUE)
+# fitMeasures(fit_Model_H1, c("cfi", "rmsea", "srmr"))
+mi <- modindices(fit_Model_H1)
+mi[mi$mi > 30, ] 
+
+
+pfad_layout <- get_layout(
+  "PB02_01.1", "PB02_02.1", "PB02_04.1", "PB02_07.1", "PB02_03.1", "PB02_05.1" , "PB02_06.1", "PB02_08.1",
+  NA, "AGE1", NA, NA, NA, NA, "IHE1", NA,
+  NA, NA, NA, "EF_E_1", NA, NA, NA, NA,
+  NA, NA, NA, "EF_K_1", NA, NA, NA, NA,
+  NA, "AGK1", NA, NA, NA, NA, "IHK1", NA,
+  "MD04_01.1", "MD04_02.1", "MD04_04.1", "MD04_07.1", "MD04_03.1", "MD04_05.1" , "MD04_06.1", "MD04_08.1",
+  rows = 6)
+
+graph_sem(model = fit_Model_H1, layout = pfad_layout)
 
 fit_Model_H1 <- sem(model = Model_H1, data = data_mzp12,
                     missing = "FIML", fixed.x = 'default',
