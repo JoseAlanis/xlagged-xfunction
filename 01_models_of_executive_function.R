@@ -66,59 +66,58 @@ Model_H1 <- '
 # Messmodell
 
 ## Children
-# AGK1 =~ 1 * MD04_01.1 + 1 * MD04_02.1 + 1 * MD04_04.1 + 1 * MD04_07.1
-# IHK1 =~ 1 * MD04_03.1 + 1 * MD04_05.1 + 1 * MD04_06.1 + 1 * MD04_08.1
-# EF_K_1 =~ 1 * AGK1 + 1 * IHK1
+AGK1 =~ 1 * MD04_01.1 + 1 * MD04_02.1 + 1 * MD04_04.1 + 1 * MD04_07.1
+IHK1 =~ 1 * MD04_03.1 + 1 * MD04_05.1 + 1 * MD04_06.1 + 1 * MD04_08.1
+EF_K_1 =~ 1 * AGK1 + 1 * IHK1
 
 AGK2 =~ 1 * MD04_01.2 + 1 * MD04_02.2 + 1 * MD04_04.2 + 1 * MD04_07.2
 IHK2 =~ 1 * MD04_03.2 + 1 * MD04_05.2 + 1 * MD04_06.2 + 1 * MD04_08.2
 EF_K_2 =~ 1 * AGK2 + 1 * IHK2
 
 ## Parents
-# AGE1 =~ 1 * PB02_01.1 + 1 * PB02_02.1 + 1 * PB02_04.1 + 1 * PB02_07.1
-# IHE1 =~ 1 * PB02_03.1 + 1 * PB02_05.1 + 1 * PB02_06.1 + 1 * PB02_08.1
-# EF_E_1 =~ 1 * AGE1 + 1 * IHE1
+AGE1 =~ 1 * PB02_01.1 + 1 * PB02_02.1 + 1 * PB02_04.1 + 1 * PB02_07.1
+IHE1 =~ 1 * PB02_03.1 + 1 * PB02_05.1 + 1 * PB02_06.1 + 1 * PB02_08.1
+EF_E_1 =~ 1 * AGE1 + 1 * IHE1
 
 AGE2 =~ 1 * PB02_01.2 + 1 * PB02_02.2 + 1 * PB02_04.2 + 1 * PB02_07.2
 IHE2 =~ 1 * PB02_03.2 + 1 * PB02_05.2 + 1 * PB02_06.2 + 1 * PB02_08.2
 EF_E_2 =~ 1 * AGE2 + 1 * IHE2
 
+E =~ 1 * EF_E_1 + 1 * EF_E_2
+K =~ 1 * EF_K_1 + 1 * EF_K_2
+
 # Strukturmodell
-EF_K_2 ~ EF_E_2
+K ~ E
 # EF_K_2 ~ EF_E_1
-# EF_K_2 ~ EF_K_1
+# EF_K_2 ~ EF_E_2
 
 # Correlations
-# AGK1 ~~ AGE1
-# IHK1 ~~ IHE1
+# EF_K_2 ~~ EF_K_1
+# EF_E_2 ~~ EF_E_1
 
-AGK2 ~~ AGE2
+AGK1 ~~ AGE1
+IHK1 ~~ IHE1
+AGE1 ~~ AGE2
 IHK2 ~~ IHE2
 
-# AGK1 ~~ AGE2
-# IHK1 ~~ IHE2
-
-# EF_K_1 ~~ EF_E_1
-# EF_K_2 ~~ EF_E_2
-
 # fix intercepts to zero
-# MD04_01.1 ~ 0
-# MD04_02.1 ~ 0
-# MD04_04.1 ~ 0
-# MD04_07.1 ~ 0
-# MD04_03.1 ~ 0
-# MD04_05.1 ~ 0
-# MD04_06.1 ~ 0
-# MD04_08.1 ~ 0
-# 
-# PB02_01.1 ~ 0
-# PB02_02.1 ~ 0
-# PB02_04.1 ~ 0
-# PB02_07.1 ~ 0
-# PB02_03.1 ~ 0
-# PB02_05.1 ~ 0
-# PB02_06.1 ~ 0
-# PB02_08.1 ~ 0
+MD04_01.1 ~ 0
+MD04_02.1 ~ 0
+MD04_04.1 ~ 0
+MD04_07.1 ~ 0
+MD04_03.1 ~ 0
+MD04_05.1 ~ 0
+MD04_06.1 ~ 0
+MD04_08.1 ~ 0
+
+PB02_01.1 ~ 0
+PB02_02.1 ~ 0
+PB02_04.1 ~ 0
+PB02_07.1 ~ 0
+PB02_03.1 ~ 0
+PB02_05.1 ~ 0
+PB02_06.1 ~ 0
+PB02_08.1 ~ 0
 
 MD04_01.2 ~ 0
 MD04_02.2 ~ 0
@@ -138,109 +137,111 @@ PB02_05.2 ~ 0
 PB02_06.2 ~ 0
 PB02_08.2 ~ 0
 
-MD04_03.2 ~~ MD04_05.2
+# MD04_03.2 ~~ MD04_05.2
+EF_E_1 ~~ 0 * EF_E_1
+EF_E_2 ~~ 0 * EF_E_2
 '
 
 fit_Model_H1 <- sem(model = Model_H1, data = data_mzp12,
                     estimator = "MLR" , missing = "fiml", std.lv = FALSE)
 summary(fit_Model_H1, fit.measures = TRUE,
-        standardized = TRUE, rsquare=T, ci = TRUE)
+        standardized = TRUE, rsquare = TRUE, ci = TRUE)
 # fitMeasures(fit_Model_H1, c("cfi", "rmsea", "srmr"))
 mi <- modindices(fit_Model_H1)
 mi[mi$mi > 30, ] 
 
-
-pfad_layout <- get_layout(
-  "PB02_01.1", "PB02_02.1", "PB02_04.1", "PB02_07.1", "PB02_03.1", "PB02_05.1" , "PB02_06.1", "PB02_08.1",
-  NA, "AGE1", NA, NA, NA, NA, "IHE1", NA,
-  NA, NA, NA, "EF_E_1", NA, NA, NA, NA,
-  NA, NA, NA, "EF_K_1", NA, NA, NA, NA,
-  NA, "AGK1", NA, NA, NA, NA, "IHK1", NA,
-  "MD04_01.1", "MD04_02.1", "MD04_04.1", "MD04_07.1", "MD04_03.1", "MD04_05.1" , "MD04_06.1", "MD04_08.1",
-  rows = 6)
-
-graph_sem(model = fit_Model_H1, layout = pfad_layout)
-
-fit_Model_H1 <- sem(model = Model_H1, data = data_mzp12,
-                    missing = "FIML", fixed.x = 'default',
-                    estimator ="MLR",  std.lv = TRUE)
-summary(fit_Model_H1, standardize = TRUE, rsquare = TRUE)
-fitMeasures(fit_Model_H1, c("cfi", "rmsea", "srmr"))
-
-#Graph
-pfad_layout <- get_layout(
-  NA, "AGK1", NA, NA, "AGK2", NA,
-  "MD04_01.1", "MD04_04.1" , "MD04_07.1", "MD04_01.2", "MD04_04.2" , "MD04_07.2",
-  rows = 2)
-
-graph_sem(model = fit_Model_H1, layout = pfad_layout)
-
-
-'
-
-### Inhibition
-IHK1 =~ 1 * MD04_03.1 + MD04_05.1 + MD04_06.1 + MD04_08.1
-IHK2 =~ 1 * MD04_03.2 + MD04_05.2 + MD04_06.2 + MD04_08.2
-
-## Parents
-### Working memory
-AGE1 =~ 1 * PB02_01.1 + PB02_02.1 + PB02_04.1 + PB02_07.1
-AGE2 =~ 1 * PB02_01.2 + PB02_02.2 + PB02_04.2 + PB02_07.2
-
-### Inhibition
-IHE1 =~ 1 * PB02_03.1 + PB02_05.1 + PB02_06.1 + PB02_08.1
-IHE2 =~ 1 * PB02_03.2 + PB02_05.2 + PB02_06.2 + PB02_08.2
-
-## EF children
-# EF_K1 =~ 1 * AGK1 + 1 * IHK1
-# EF_K2 =~ 1 * AGK2 + 1 * IHK2
-
-# EF_E1 =~ 1 * AGE1 + 1 * IHE1
-# EF_E2 =~ 1 * AGE2 + 1 * IHE2
-
-# Strukturmodell
-# EFK2 ~ EFE1 + EFK1
-# EFE2 ~ EFK1 + EFE1
-
-# Kovarianzen
-# EF_K1 ~~ EF_K2
-# EF_E1 ~~ EF_E2
-
-#Intecepts
-MD04_01.1 ~ 0
-MD04_04.1 ~ 0
-MD04_07.1 ~ 0
-MD04_03.1 ~ 0
-MD04_05.1 ~ 0
-MD04_06.1 ~ 0
-MD04_08.1 ~ 0
-MD04_01.2 ~ 0
-MD04_04.2 ~ 0
-MD04_07.2 ~ 0
-MD04_03.2 ~ 0
-MD04_05.2 ~ 0
-MD04_06.2 ~ 0
-MD04_08.2 ~ 0
-
-PB02_01.1 ~ 0
-PB02_02.1 ~ 0
-PB02_04.1 ~ 0
-PB02_07.1 ~ 0
-PB02_03.1 ~ 0
-PB02_05.1 ~ 0
-PB02_06.1 ~ 0
-PB02_08.1 ~ 0
-PB02_01.2 ~ 0
-PB02_02.2 ~ 0
-PB02_04.2 ~ 0
-PB02_07.2 ~ 0
-PB02_03.2 ~ 0
-PB02_05.2 ~ 0
-PB02_06.2 ~ 0
-PB02_08.2 ~ 0
-
-# residuen
-# PB02_03.1 ~~ 0 * PB02_03.1
-# PB02_03.2 ~~ 0 * PB02_03.2
-
-'
+#
+# pfad_layout <- get_layout(
+#   "PB02_01.1", "PB02_02.1", "PB02_04.1", "PB02_07.1", "PB02_03.1", "PB02_05.1" , "PB02_06.1", "PB02_08.1",
+#   NA, "AGE1", NA, NA, NA, NA, "IHE1", NA,
+#   NA, NA, NA, "EF_E_1", NA, NA, NA, NA,
+#   NA, NA, NA, "EF_K_1", NA, NA, NA, NA,
+#   NA, "AGK1", NA, NA, NA, NA, "IHK1", NA,
+#   "MD04_01.1", "MD04_02.1", "MD04_04.1", "MD04_07.1", "MD04_03.1", "MD04_05.1" , "MD04_06.1", "MD04_08.1",
+#   rows = 6)
+#
+# graph_sem(model = fit_Model_H1, layout = pfad_layout)
+#
+# fit_Model_H1 <- sem(model = Model_H1, data = data_mzp12,
+#                     missing = "FIML", fixed.x = 'default',
+#                     estimator ="MLR",  std.lv = TRUE)
+# summary(fit_Model_H1, standardize = TRUE, rsquare = TRUE)
+# fitMeasures(fit_Model_H1, c("cfi", "rmsea", "srmr"))
+#
+# #Graph
+# pfad_layout <- get_layout(
+#   NA, "AGK1", NA, NA, "AGK2", NA,
+#   "MD04_01.1", "MD04_04.1" , "MD04_07.1", "MD04_01.2", "MD04_04.2" , "MD04_07.2",
+#   rows = 2)
+#
+# graph_sem(model = fit_Model_H1, layout = pfad_layout)
+#
+#
+# '
+#
+# ### Inhibition
+# IHK1 =~ 1 * MD04_03.1 + MD04_05.1 + MD04_06.1 + MD04_08.1
+# IHK2 =~ 1 * MD04_03.2 + MD04_05.2 + MD04_06.2 + MD04_08.2
+#
+# ## Parents
+# ### Working memory
+# AGE1 =~ 1 * PB02_01.1 + PB02_02.1 + PB02_04.1 + PB02_07.1
+# AGE2 =~ 1 * PB02_01.2 + PB02_02.2 + PB02_04.2 + PB02_07.2
+#
+# ### Inhibition
+# IHE1 =~ 1 * PB02_03.1 + PB02_05.1 + PB02_06.1 + PB02_08.1
+# IHE2 =~ 1 * PB02_03.2 + PB02_05.2 + PB02_06.2 + PB02_08.2
+#
+# ## EF children
+# # EF_K1 =~ 1 * AGK1 + 1 * IHK1
+# # EF_K2 =~ 1 * AGK2 + 1 * IHK2
+#
+# # EF_E1 =~ 1 * AGE1 + 1 * IHE1
+# # EF_E2 =~ 1 * AGE2 + 1 * IHE2
+#
+# # Strukturmodell
+# # EFK2 ~ EFE1 + EFK1
+# # EFE2 ~ EFK1 + EFE1
+#
+# # Kovarianzen
+# # EF_K1 ~~ EF_K2
+# # EF_E1 ~~ EF_E2
+#
+# #Intecepts
+# MD04_01.1 ~ 0
+# MD04_04.1 ~ 0
+# MD04_07.1 ~ 0
+# MD04_03.1 ~ 0
+# MD04_05.1 ~ 0
+# MD04_06.1 ~ 0
+# MD04_08.1 ~ 0
+# MD04_01.2 ~ 0
+# MD04_04.2 ~ 0
+# MD04_07.2 ~ 0
+# MD04_03.2 ~ 0
+# MD04_05.2 ~ 0
+# MD04_06.2 ~ 0
+# MD04_08.2 ~ 0
+#
+# PB02_01.1 ~ 0
+# PB02_02.1 ~ 0
+# PB02_04.1 ~ 0
+# PB02_07.1 ~ 0
+# PB02_03.1 ~ 0
+# PB02_05.1 ~ 0
+# PB02_06.1 ~ 0
+# PB02_08.1 ~ 0
+# PB02_01.2 ~ 0
+# PB02_02.2 ~ 0
+# PB02_04.2 ~ 0
+# PB02_07.2 ~ 0
+# PB02_03.2 ~ 0
+# PB02_05.2 ~ 0
+# PB02_06.2 ~ 0
+# PB02_08.2 ~ 0
+#
+# # residuen
+# # PB02_03.1 ~~ 0 * PB02_03.1
+# # PB02_03.2 ~~ 0 * PB02_03.2
+#
+# '
