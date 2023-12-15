@@ -1,0 +1,130 @@
+---
+title: "Intergenerational relationships in executive function"
+authors: "Johanna Kneidinger, José C. García Alanis"
+date:  "`r Sys.Date()`"
+output:
+  html_document:
+    theme: lumen
+    highlight: pygments
+    css: "styler.css"
+---
+
+Created with `r R.version.string`
+
+```{r, setup, include = FALSE}
+knitr::opts_chunk$set(class.source = "customCode",
+                      class.output = "customOutput",
+                      class.message = "customWarning")
+if (interactive()) {
+  path <- dirname(rstudioapi::getSourceEditorContext()$path)
+} else {
+  path <- normalizePath('./')
+}
+setwd(path)
+# source('utils.R')
+
+require(dplyr)
+```
+
+```{r}
+# load data
+data_t1 <- read.csv(
+  "06092022_Corona_base_inklEinzeldaten.csv",
+  header = TRUE,
+  dec = ",",
+  sep = ";",
+  encoding = "ISO-8859-1"
+)
+data_t2 <- read.csv(
+  "06092022_Corona_MZP2_inklEinzeldaten.csv",
+  header = TRUE,
+  dec = ",",
+  sep = ";",
+  encoding = "ISO-8859-1"
+)
+```
+
+```{r}
+# re-arrange data according to the case number for easier visual
+# inspection
+
+# T1 data
+data_t1 <- data_t1 %>%
+  arrange(IC05_01) %>%
+  select(
+    # gender
+    SD01,
+    # age,
+    SD02_01,
+    # id
+    IC05_01,
+    # parents rate childrens EF
+    MD04_01, MD04_02, MD04_03, MD04_04,
+    MD04_05, MD04_06, MD04_07, MD04_08,
+    
+    # parents rate their own EF
+    PB02_01, PB02_02, PB02_03, PB02_04,
+    PB02_05, PB02_06, PB02_07, PB02_08,
+    
+    #parents rate childrens DA
+    MD04_12, MD04_09,
+    
+    # parents rate their own DA
+    PB02_09, PB02_12,
+    
+    # time spent homeschooling
+    HS01
+  )
+
+# T2 data
+data_t2 <- data_t2 %>%
+  arrange(IC05_01) %>%
+  select(
+    IC05_01,
+    # gender
+    SD01,
+    # age,
+    SD02_01,
+    # parents rate childrens EF
+    MD04_01, MD04_02, MD04_03, MD04_04,
+    MD04_05, MD04_06, MD04_07, MD04_08,
+    
+    # parents rate their own EF
+    PB02_01, PB02_02, PB02_03, PB02_04,
+    PB02_05, PB02_06, PB02_07, PB02_08,
+    
+    #parents rate childrens DA
+    MD04_12, MD04_09,
+    
+    # parents rate their own EF
+    PB02_09, PB02_12,
+    
+    # time spent homeschooling
+    HS01
+  )
+```
+
+```{r}
+data_all <- data_t1 %>%
+  left_join(., 
+            data_t2, 
+            by = 'IC05_01', 
+            suffix = c(".1", ".2")
+            ) %>%
+  mutate(IC05_01 = as.factor(IC05_01))
+```
+
+```{r}
+require(psych)
+data_t1 %>%
+  select(MD04_01, MD04_02, MD04_04, MD04_07) %>%
+  alpha()
+
+data_t1 %>%
+  select(MD04_03, MD04_05, MD04_06, MD04_08) %>%
+  alpha()
+```
+
+
+
+
