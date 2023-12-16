@@ -1,2 +1,9 @@
-/06092022_Corona_base_inklEinzeldaten.csv
-/06092022_Corona_MZP2_inklEinzeldaten.csv
+# JetBrains
+.idea
+
+# directories
+data
+manuscript
+
+# data files
+*.csv
