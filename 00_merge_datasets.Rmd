@@ -169,13 +169,13 @@ data_all %>%
 ```{r WM-T1}
 # working memory (WM) data t1
 
-# parents rate their own WM
-wm_t1.p <- data_all %>%
+# parents rate their childrens WM
+wm_t1.c <- data_all %>%
         select(IC05_01, MD04_01.1, MD04_02.1, MD04_04.1, MD04_07.1)
 # %>% mutate_if(is.numeric, z_score)
 
-# parents rate their childrens WM
-wm_t1.c <- data_all %>%
+# parents rate their own WM
+wm_t1.p <- data_all %>%
         select(IC05_01, PB02_01.1, PB02_02.1, PB02_04.1, PB02_07.1)
 # %>% mutate_if(is.numeric, z_score)
 
@@ -200,20 +200,20 @@ alpha_wm.p_t1$total %>%
                G6_smc = `G6(smc)`, Average_r = average_r, S_N = `S/N`, ASE = ase,
                M = mean, SD = sd, Median_r = median_r) %>%
         kbl(digits = 3,
-            caption = 'Iternal consitency, working memory items at measurement timepoint 1') %>%
+            caption = 'Internal consitency, working memory items at measurement timepoint 1') %>%
         kable_classic("hover", full_width = FALSE)
 ```
 
 
 ```{r WM-T2}
 # working memory t2
-# parents rate their own WM
-wm_t2.p <- data_all %>%
+# parents rate their childrens WM
+wm_t2.c <- data_all %>%
         select(IC05_01, MD04_01.2, MD04_02.2, MD04_04.2, MD04_07.2)
 # %>% mutate_if(is.numeric, z_score)
 
-# parents rate their childrens WM
-wm_t2.c <- data_all %>%
+# parents rate their own WM
+wm_t2.p <- data_all %>%
         select(IC05_01, PB02_01.2, PB02_02.2, PB02_04.2, PB02_07.2)
 # %>% mutate_if(is.numeric, z_score)
 
@@ -238,19 +238,19 @@ alpha_wm.p_t2$total %>%
                G6_smc = `G6(smc)`, Average_r = average_r, S_N = `S/N`, ASE = ase,
                M = mean, SD = sd, Median_r = median_r) %>%
         kbl(digits = 3,
-            caption = 'Iternal consitency, working memory items at measurement timepoint 2') %>%
+            caption = 'Internal consitency, working memory items at measurement timepoint 2') %>%
         kable_classic("hover", full_width = FALSE)
 ```
 
 ```{r IH-T1}
 # inhibition t1
-# parents rate their own inhibition
-inhibition_t1.p <- data_all %>%
+# parents rate their childrens inhibition
+inhibition_t1.c <- data_all %>%
         select(IC05_01, MD04_03.1, MD04_05.1, MD04_06.1, MD04_08.1)
 # %>% mutate_if(is.numeric, z_score)
 
-# parents rate their childrens inhibition
-inhibition_t1.c <- data_all %>%
+# parents rate their own inhibition
+inhibition_t1.p <- data_all %>%
         select(IC05_01, PB02_03.1, PB02_05.1, PB02_06.1,  PB02_08.1)
 # %>% mutate_if(is.numeric, z_score)
 
@@ -275,20 +275,20 @@ alpha_inhibition.p_t1$total %>%
                G6_smc = `G6(smc)`, Average_r = average_r, S_N = `S/N`, ASE = ase,
                M = mean, SD = sd, Median_r = median_r) %>%
         kbl(digits = 3,
-            caption = 'Iternal consitency, inhibition items at measurement timepoint 1') %>%
+            caption = 'Internal consitency, inhibition items at measurement timepoint 1') %>%
         kable_classic("hover", full_width = FALSE)
 ```
 
 
 ```{r IN-T2}
 # inhibition t2
-# parents rate their own inhibition
-inhibition_t2.p <- data_all %>%
+# parents rate their childrens inhibition
+inhibition_t2.c <- data_all %>%
         select(IC05_01, MD04_03.2, MD04_05.2, MD04_06.2, MD04_08.2)
 # %>% mutate_if(is.numeric, z_score)
 
-# parents rate their childrens inhibition
-inhibition_t2.c <- data_all %>%
+# parents rate their own inhibition
+inhibition_t2.p <- data_all %>%
         select(IC05_01, PB02_03.2, PB02_05.2, PB02_06.2,  PB02_08.2)
 # %>% mutate_if(is.numeric, z_score)
 
@@ -298,7 +298,7 @@ alpha_inhibition.c_t2 <- alpha(inhibition_t2.c[, -1])
 
 # make Inhibition t12table
 alpha_inhibition.p_t2$total %>%
-        bind_rows(alpha_inhibition.c_t1$total) %>%
+        bind_rows(alpha_inhibition.c_t2$total) %>%
         mutate(target = c('Parents', 'Children'),
                .before = "raw_alpha") %>%
         mutate(lci = c(alpha_inhibition.p_t2$feldt$lower.ci,
@@ -313,6 +313,81 @@ alpha_inhibition.p_t2$total %>%
                G6_smc = `G6(smc)`, Average_r = average_r, S_N = `S/N`, ASE = ase,
                M = mean, SD = sd, Median_r = median_r) %>%
         kbl(digits = 3,
-            caption = 'Iternal consitency, inhibition items at measurement timepoint 2') %>%
+            caption = 'Internal consitency, inhibition items at measurement timepoint 2') %>%
         kable_classic("hover", full_width = FALSE)
+```
+
+```{r DA-T1}
+# delay aversion t1
+# parents rate their childrens inhibition
+delay_aversion_t1.c <- data_all %>%
+  select(IC05_01, MD04_12.1, MD04_09.1)
+# %>% mutate_if(is.numeric, z_score)
+
+# parents rate their own inhibition
+delay_aversion_t1.p <- data_all %>%
+  select(IC05_01, PB02_09.1, PB02_12.1)
+# %>% mutate_if(is.numeric, z_score)
+
+# internal consitency
+delay_aversion.p_t1 <- alpha(delay_aversion_t1.p[, -1])
+delay_aversion.c_t1 <- alpha(delay_aversion_t1.c[, -1])
+
+# make Inhibition t12table
+delay_aversion.p_t1$total %>%
+  bind_rows(delay_aversion.c_t1$total) %>%
+  mutate(target = c('Parents', 'Children'),
+         .before = "raw_alpha") %>%
+  mutate(lci = c(delay_aversion.p_t1$feldt$lower.ci,
+                 delay_aversion.c_t1$feldt$lower.ci),
+         uci = c(delay_aversion.p_t1$feldt$upper.ci,
+                 delay_aversion.c_t1$feldt$upper.ci),
+         .after = raw_alpha) %>%
+  mutate(across(raw_alpha:median_r, as.numeric)) %>%
+  remove_rownames() %>%
+  rename(Target = target,
+         Alpha = raw_alpha, CI_l = lci, CI_u = uci, Alpha_std = std.alpha,
+         G6_smc = `G6(smc)`, Average_r = average_r, S_N = `S/N`, ASE = ase,
+         M = mean, SD = sd, Median_r = median_r) %>%
+  kbl(digits = 3,
+      caption = 'Internal consitency, delay-aversion items at measurement timepoint 1') %>%
+  kable_classic("hover", full_width = FALSE)
+```
+
+
+```{r DA-T2}
+# delay aversion t2
+# parents rate their childrens inhibition
+delay_aversion_t2.c <- data_all %>%
+  select(IC05_01, MD04_12.2, MD04_09.2)
+# %>% mutate_if(is.numeric, z_score)
+
+# parents rate their own inhibition
+delay_aversion_t2.p <- data_all %>%
+  select(IC05_01, PB02_09.2, PB02_12.2)
+# %>% mutate_if(is.numeric, z_score)
+
+# internal consitency
+delay_aversion.p_t2 <- alpha(delay_aversion_t2.p[, -1])
+delay_aversion.c_t2 <- alpha(delay_aversion_t2.c[, -1])
+
+# make Inhibition t12table
+delay_aversion.p_t2$total %>%
+  bind_rows(delay_aversion.c_t2$total) %>%
+  mutate(target = c('Parents', 'Children'),
+         .before = "raw_alpha") %>%
+  mutate(lci = c(delay_aversion.p_t2$feldt$lower.ci,
+                 delay_aversion.c_t2$feldt$lower.ci),
+         uci = c(delay_aversion.p_t2$feldt$upper.ci,
+                 delay_aversion.c_t2$feldt$upper.ci),
+         .after = raw_alpha) %>%
+  mutate(across(raw_alpha:median_r, as.numeric)) %>%
+  remove_rownames() %>%
+  rename(Target = target,
+         Alpha = raw_alpha, CI_l = lci, CI_u = uci, Alpha_std = std.alpha,
+         G6_smc = `G6(smc)`, Average_r = average_r, S_N = `S/N`, ASE = ase,
+         M = mean, SD = sd, Median_r = median_r) %>%
+  kbl(digits = 3,
+      caption = 'Internal consitency, delay-aversion items at measurement timepoint 2') %>%
+  kable_classic("hover", full_width = FALSE)
 ```
