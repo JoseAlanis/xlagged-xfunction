@@ -9,7 +9,11 @@ output:
     css: "styler.css"
 ---
 
+Authors: Johanna Kneidinger & José C. García Alanis
+
 Created with `r R.version.string`
+
+Create data table for analysis and check internal consistency of the scales.
 
 ```{r, setup, include = FALSE}
 knitr::opts_chunk$set(class.source = "customCode",
@@ -21,22 +25,25 @@ if (interactive()) {
   path <- normalizePath('./')
 }
 setwd(path)
-# source('utils.R')
+source('utils.R')
 
 require(dplyr)
+require(tibble)
+require(psych)
+require(kableExtra)
 ```
 
-```{r}
+```{r load-data}
 # load data
 data_t1 <- read.csv(
-  "06092022_Corona_base_inklEinzeldaten.csv",
+  file = Sys.glob("data/*_base_inklEinzeldaten.csv"),
   header = TRUE,
   dec = ",",
   sep = ";",
   encoding = "ISO-8859-1"
 )
 data_t2 <- read.csv(
-  "06092022_Corona_MZP2_inklEinzeldaten.csv",
+  file = Sys.glob("data/*_MZP2_inklEinzeldaten.csv"),
   header = TRUE,
   dec = ",",
   sep = ";",
@@ -44,7 +51,8 @@ data_t2 <- read.csv(
 )
 ```
 
-```{r}
+
+```{r select-variables}
 # re-arrange data according to the case number for easier visual
 # inspection
 
@@ -61,17 +69,17 @@ data_t1 <- data_t1 %>%
     # parents rate childrens EF
     MD04_01, MD04_02, MD04_03, MD04_04,
     MD04_05, MD04_06, MD04_07, MD04_08,
-    
+
     # parents rate their own EF
     PB02_01, PB02_02, PB02_03, PB02_04,
     PB02_05, PB02_06, PB02_07, PB02_08,
-    
+
     #parents rate childrens DA
     MD04_12, MD04_09,
-    
+
     # parents rate their own DA
     PB02_09, PB02_12,
-    
+
     # time spent homeschooling
     HS01
   )
@@ -88,43 +96,223 @@ data_t2 <- data_t2 %>%
     # parents rate childrens EF
     MD04_01, MD04_02, MD04_03, MD04_04,
     MD04_05, MD04_06, MD04_07, MD04_08,
-    
+
     # parents rate their own EF
     PB02_01, PB02_02, PB02_03, PB02_04,
     PB02_05, PB02_06, PB02_07, PB02_08,
-    
+
     #parents rate childrens DA
     MD04_12, MD04_09,
-    
+
     # parents rate their own EF
     PB02_09, PB02_12,
-    
+
     # time spent homeschooling
     HS01
   )
 ```
 
-```{r}
+```{r join-dfs}
 data_all <- data_t1 %>%
-  left_join(., 
-            data_t2, 
-            by = 'IC05_01', 
+  left_join(.,
+            data_t2,
+            by = 'IC05_01',
             suffix = c(".1", ".2")
-            ) %>%
+  ) %>%
   mutate(IC05_01 = as.factor(IC05_01))
+
+# save dataframe
+saveRDS(data_all, file = 'data/data_all.rds')
 ```
 
-```{r}
-require(psych)
-data_t1 %>%
-  select(MD04_01, MD04_02, MD04_04, MD04_07) %>%
-  alpha()
+```{r descritives-t1}
+# make descriptives table
+data_all %>%
+        mutate(female = ifelse(SD01.1 == 1, 1, NA),
+               male = ifelse(SD01.1 == 2, 1, NA),
+               diverse = ifelse(SD01.1 == 3, 1, NA),
+               other = ifelse(SD01.1 == 4, 1, NA)) %>%
+        summarise(mean_age_t1 = mean(SD02_01.1, na.rm = TRUE),
+                  sd_age_t1 = sd(SD02_01.1, na.rm = TRUE),
+                  min_age_t1 = min(SD02_01.1, na.rm = TRUE),
+                  max_age_t1 = max(SD02_01.1, na.rm = TRUE),
+                  n_female = sum(female, na.rm = TRUE),
+                  n_male = sum(male, na.rm = TRUE),
+                  n_diverse = sum(diverse, na.rm = TRUE),
+                  n_other = sum(other, na.rm = TRUE)) %>%
+        kbl(digits = 3,
+            caption = 'Sample descriptives timepoint 1') %>%
+        kable_classic("hover", full_width = FALSE)
+```
 
-data_t1 %>%
-  select(MD04_03, MD04_05, MD04_06, MD04_08) %>%
-  alpha()
+```{r descritives-t2}
+# make descriptives table
+data_all %>%
+        mutate(female = ifelse(SD01.2 == 1, 1, NA),
+               male = ifelse(SD01.2 == 2, 1, NA),
+               diverse = ifelse(SD01.2 == 3, 1, NA),
+               other = ifelse(SD01.2 == 4, 1, NA)) %>%
+        summarise(mean_age_t1 = mean(SD02_01.2, na.rm = TRUE),
+                  sd_age_t1 = sd(SD02_01.2, na.rm = TRUE),
+                  min_age_t1 = min(SD02_01.2, na.rm = TRUE),
+                  max_age_t1 = max(SD02_01.2, na.rm = TRUE),
+                  n_female = sum(female, na.rm = TRUE),
+                  n_male = sum(male, na.rm = TRUE),
+                  n_diverse = sum(diverse, na.rm = TRUE),
+                  n_other = sum(other, na.rm = TRUE)) %>%
+        kbl(digits = 3,
+            caption = 'Sample descriptives timepoint 2') %>%
+        kable_classic("hover", full_width = FALSE)
 ```
 
 
+```{r WM-T1}
+# working memory (WM) data t1
+
+# parents rate their own WM
+wm_t1.p <- data_all %>%
+  select(IC05_01, MD04_01.1, MD04_02.1, MD04_04.1, MD04_07.1)
+  # %>% mutate_if(is.numeric, z_score)
+
+# parents rate their childrens WM
+wm_t1.c <- data_all %>%
+  select(IC05_01, PB02_01.1, PB02_02.1, PB02_04.1, PB02_07.1)
+  # %>% mutate_if(is.numeric, z_score)
+
+# internal consitency
+alpha_wm.p_t1 <- alpha(wm_t1.p[, -1])
+alpha_wm.c_t1 <- alpha(wm_t1.c[, -1])
+
+# make WM t1 table
+alpha_wm.p_t1$total %>%
+  bind_rows(alpha_wm.c_t1$total) %>%
+  mutate(target = c('Parents', 'Children'),
+         .before = "raw_alpha") %>%
+  mutate(lci = c(alpha_wm.p_t1$feldt$lower.ci,
+                 alpha_wm.c_t1$feldt$lower.ci),
+         uci = c(alpha_wm.p_t1$feldt$upper.ci,
+                 alpha_wm.c_t1$feldt$upper.ci),
+         .after = raw_alpha) %>%
+  mutate(across(raw_alpha:median_r, as.numeric)) %>%
+  remove_rownames() %>%
+  rename(Target = target,
+         Alpha = raw_alpha, CI_l = lci, CI_u = uci, Alpha_std = std.alpha,
+         G6_smc = `G6(smc)`, Average_r = average_r, S_N = `S/N`, ASE = ase,
+         M = mean, SD = sd, Median_r = median_r) %>%
+  kbl(digits = 3,
+      caption = 'Iternal consitency, working memory items at measurement timepoint 1') %>%
+  kable_classic("hover", full_width = FALSE)
+```
 
 
+```{r WM-T2}
+# working memory t2
+# parents rate their own WM
+wm_t2.p <- data_all %>%
+  select(IC05_01, MD04_01.2, MD04_02.2, MD04_04.2, MD04_07.2)
+  # %>% mutate_if(is.numeric, z_score)
+
+# parents rate their childrens WM
+wm_t2.c <- data_all %>%
+  select(IC05_01, PB02_01.2, PB02_02.2, PB02_04.2, PB02_07.2)
+  # %>% mutate_if(is.numeric, z_score)
+
+# internal consitency
+alpha_wm.p_t2 <- alpha(wm_t2.p[, -1])
+alpha_wm.c_t2 <- alpha(wm_t2.c[, -1])
+
+# make WM t2 table
+alpha_wm.p_t2$total %>%
+  bind_rows(alpha_wm.c_t2$total) %>%
+  mutate(target = c('Parents', 'Children'),
+         .before = "raw_alpha") %>%
+  mutate(lci = c(alpha_wm.p_t2$feldt$lower.ci,
+                 alpha_wm.c_t2$feldt$lower.ci),
+         uci = c(alpha_wm.p_t2$feldt$upper.ci,
+                 alpha_wm.c_t2$feldt$upper.ci),
+         .after = raw_alpha) %>%
+  mutate(across(raw_alpha:median_r, as.numeric)) %>%
+  remove_rownames() %>%
+  rename(Target = target,
+         Alpha = raw_alpha, CI_l = lci, CI_u = uci, Alpha_std = std.alpha,
+         G6_smc = `G6(smc)`, Average_r = average_r, S_N = `S/N`, ASE = ase,
+         M = mean, SD = sd, Median_r = median_r) %>%
+  kbl(digits = 3,
+      caption = 'Iternal consitency, working memory items at measurement timepoint 2') %>%
+  kable_classic("hover", full_width = FALSE)
+```
+
+```{r IH-T1}
+# inhibition t1
+# parents rate their own inhibition
+inhibition_t1.p <- data_all %>%
+  select(IC05_01, MD04_03.1, MD04_05.1, MD04_06.1, MD04_08.1)
+  # %>% mutate_if(is.numeric, z_score)
+
+# parents rate their childrens inhibition
+inhibition_t1.c <- data_all %>%
+  select(IC05_01, PB02_03.1, PB02_05.1, PB02_06.1,  PB02_08.1)
+  # %>% mutate_if(is.numeric, z_score)
+
+# internal consitency
+alpha_inhibition.p_t1 <- alpha(inhibition_t1.p[, -1])
+alpha_inhibition.c_t1 <- alpha(inhibition_t1.c[, -1])
+
+# make Inhibition t1 table
+alpha_inhibition.p_t1$total %>%
+  bind_rows(alpha_inhibition.c_t1$total) %>%
+  mutate(target = c('Parents', 'Children'),
+         .before = "raw_alpha") %>%
+  mutate(lci = c(alpha_inhibition.p_t1$feldt$lower.ci,
+                 alpha_inhibition.c_t1$feldt$lower.ci),
+         uci = c(alpha_inhibition.p_t1$feldt$upper.ci,
+                 alpha_inhibition.c_t1$feldt$upper.ci),
+         .after = raw_alpha) %>%
+  mutate(across(raw_alpha:median_r, as.numeric)) %>%
+  remove_rownames() %>%
+  rename(Target = target,
+         Alpha = raw_alpha, CI_l = lci, CI_u = uci, Alpha_std = std.alpha,
+         G6_smc = `G6(smc)`, Average_r = average_r, S_N = `S/N`, ASE = ase,
+         M = mean, SD = sd, Median_r = median_r) %>%
+  kbl(digits = 3,
+      caption = 'Iternal consitency, inhibition items at measurement timepoint 1') %>%
+  kable_classic("hover", full_width = FALSE)
+```
+
+
+```{r IN-T2}
+# inhibition t2
+# parents rate their own inhibition
+inhibition_t2.p <- data_all %>%
+        select(IC05_01, MD04_03.2, MD04_05.2, MD04_06.2, MD04_08.2)
+  # %>% mutate_if(is.numeric, z_score)
+
+# parents rate their childrens inhibition
+inhibition_t2.c <- data_all %>%
+        select(IC05_01, PB02_03.2, PB02_05.2, PB02_06.2,  PB02_08.2)
+  # %>% mutate_if(is.numeric, z_score)
+
+# internal consitency
+alpha_inhibition.p_t2 <- alpha(inhibition_t2.p[, -1])
+alpha_inhibition.c_t2 <- alpha(inhibition_t2.c[, -1])
+
+# make Inhibition t12table
+alpha_inhibition.p_t2$total %>%
+        bind_rows(alpha_inhibition.c_t1$total) %>%
+        mutate(target = c('Parents', 'Children'),
+               .before = "raw_alpha") %>%
+        mutate(lci = c(alpha_inhibition.p_t2$feldt$lower.ci,
+                       alpha_inhibition.c_t2$feldt$lower.ci),
+               uci = c(alpha_inhibition.p_t2$feldt$upper.ci,
+                       alpha_inhibition.c_t2$feldt$upper.ci),
+               .after = raw_alpha) %>%
+        mutate(across(raw_alpha:median_r, as.numeric)) %>%
+        remove_rownames() %>%
+        rename(Target = target,
+               Alpha = raw_alpha, CI_l = lci, CI_u = uci, Alpha_std = std.alpha,
+               G6_smc = `G6(smc)`, Average_r = average_r, S_N = `S/N`, ASE = ase,
+               M = mean, SD = sd, Median_r = median_r) %>%
+        kbl(digits = 3,
+            caption = 'Iternal consitency, inhibition items at measurement timepoint 2') %>%
+        kable_classic("hover", full_width = FALSE)
+```
