@@ -1,0 +1,182 @@
+---
+title: "Intergenerational relationships in executive function"
+authors: "Johanna Kneidinger, José C. García Alanis"
+date:  "`r Sys.Date()`"
+output:
+html_document:
+theme: lumen
+highlight: pygments
+css: "styler.css"
+---
+
+Authors: Johanna Kneidinger & José C. García Alanis
+
+Created with `r R.version.string`
+
+Fit latent models to executive function and delay aversion data.
+
+```{r, setup, include = FALSE}
+knitr::opts_chunk$set(class.source = "customCode",
+                      class.output = "customOutput",
+                      class.message = "customWarning")
+if (interactive()) {
+  path <- dirname(rstudioapi::getSourceEditorContext()$path)
+} else {
+  path <- normalizePath('./')
+}
+setwd(path)
+source('utils.R')
+
+require(dplyr)
+require(lavaan)
+```
+```{r load-data}
+# load data
+data_all <- readRDS(
+        file = "data/data_all.rds",
+)
+```
+
+```{r scale-data}
+data_scaled <- data_all %>%
+        mutate(across(`MD04_01.1`:`HS01.1`, z_score)) %>%
+        mutate(across(`MD04_01.2`:`HS01.2`, z_score))
+```
+
+```{r hypothesis-1a}
+options(width = 300)
+model_h1a <- '
+#########################################################
+# Measurement model #####################################
+
+# Children ##############################################
+
+AGK1 =~ 1 * MD04_01.1 + MD04_02.1 + MD04_04.1 + MD04_07.1
+IHK1 =~ 1 * MD04_03.1 + MD04_05.1 + MD04_06.1 + MD04_08.1
+
+AGK2 =~ 1 * MD04_01.2 + MD04_02.2 + MD04_04.2 + MD04_07.2
+IHK2 =~ 1 * MD04_03.2 + MD04_05.2 + MD04_06.2 + MD04_08.2
+
+# Parents ###############################################
+
+AGE1 =~ 1 * PB02_01.1 + PB02_02.1 + PB02_04.1 + PB02_07.1
+IHE1 =~ 1 * PB02_03.1 + PB02_05.1 + PB02_06.1 + PB02_08.1
+
+AGE2 =~ 1 * PB02_01.2 + PB02_02.2 + PB02_04.2 + PB02_07.2
+IHE2 =~ 1 * PB02_03.2 + PB02_05.2 + PB02_06.2 + PB02_08.2
+
+# Executive functions factors time 1 ####################
+
+EFK1 =~ 1 * AGK1 + 1 * IHK1
+EFE1 =~ 1 * AGE1 + 1 * IHE1
+
+# Executive functions factors time 2 ####################
+
+EFK2 =~ 1 * AGK2 + 1 * IHK2
+EFE2 =~ 1 * AGE2 + 1 * IHE2
+
+# Children higher oder factor ###########################
+
+K =~ 1 * EFK1 + 1 * EFK2
+
+# Parents higher oder factor ############################
+
+E =~ 1 * EFE1 + 1 * EFE2
+
+#########################################################
+# Structure model #######################################
+
+# Regression children ~ parents
+
+K ~ E
+
+########################################################
+# Model constraints ####################################
+
+# fix intercepts to zero
+MD04_01.1 ~ 0
+MD04_02.1 ~ 0
+MD04_04.1 ~ 0
+MD04_07.1 ~ 0
+MD04_03.1 ~ 0
+MD04_05.1 ~ 0
+MD04_06.1 ~ 0
+MD04_08.1 ~ 0
+
+PB02_01.1 ~ 0
+PB02_02.1 ~ 0
+PB02_04.1 ~ 0
+PB02_07.1 ~ 0
+PB02_03.1 ~ 0
+PB02_05.1 ~ 0
+PB02_06.1 ~ 0
+PB02_08.1 ~ 0
+
+MD04_01.2 ~ 0
+MD04_02.2 ~ 0
+MD04_04.2 ~ 0
+MD04_07.2 ~ 0
+MD04_03.2 ~ 0
+MD04_05.2 ~ 0
+MD04_06.2 ~ 0
+MD04_08.2 ~ 0
+
+PB02_01.2 ~ 0
+PB02_02.2 ~ 0
+PB02_04.2 ~ 0
+PB02_07.2 ~ 0
+PB02_03.2 ~ 0
+PB02_05.2 ~ 0
+PB02_06.2 ~ 0
+PB02_08.2 ~ 0
+
+# Residual covariances
+
+# factor level
+EFE1 ~~ 0 * EFE1
+EFE2 ~~ 0 * EFE2
+
+# item level
+MD04_01.1 ~~ MD04_01.2
+MD04_02.1 ~~ MD04_02.2
+MD04_04.1 ~~ MD04_04.2
+MD04_07.1 ~~ MD04_07.2
+
+MD04_03.1 ~~ MD04_03.2
+MD04_05.1 ~~ MD04_05.2
+MD04_06.1 ~~ MD04_06.2
+MD04_08.1 ~~ MD04_08.2
+
+PB02_01.1 ~~ PB02_01.2
+PB02_02.1 ~~ PB02_02.2
+PB02_04.1 ~~ PB02_04.2
+PB02_07.1 ~~ PB02_07.2
+
+PB02_03.1 ~~ PB02_03.2
+PB02_05.1 ~~ PB02_05.2
+PB02_06.1 ~~ PB02_06.2
+PB02_08.1 ~~ PB02_08.2
+'
+
+# run model
+fit_model_h1a <- sem(model = model_h1a,
+                     data = data_scaled,
+                     estimator = "MLR" ,
+                     missing = "fiml",
+                     std.lv = FALSE)
+# get model statistics
+summary(fit_model_h1a,
+        fit.measures = TRUE,
+        standardized = TRUE,
+        rsquare = TRUE,
+        ci = TRUE)
+```
+
+```{r standardised-solution-h1a}
+standardizedSolution(fit_model_h1a)
+```
+
+```{r mod-indices-h1a}
+mi <- modindices(fit_model_h1a)
+mi[mi$mi > 20, ] %>% arrange(desc(mi))
+```
